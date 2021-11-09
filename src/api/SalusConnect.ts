@@ -1,4 +1,5 @@
 import fetch, { Response } from 'node-fetch';
+import { URLSearchParams } from 'url';
 
 export class SalusConnectAPI {
 

@@ -1,7 +1,7 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
-import { SalusIT500BoilerSensor } from './accessories/BoilerSensor';
+import { SalusIT500BoilerActive } from './accessories/BoilerActive';
 import { SalusIT500Thermostat } from './accessories/Thermostat';
 export class SalusIt500Platform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
@@ -58,7 +58,7 @@ export class SalusIt500Platform implements DynamicPlatformPlugin {
           }
           case 'salusit500-contactsensor': {
             // register the contact sensor
-            new SalusIT500BoilerSensor(this, accessory);
+            new SalusIT500BoilerActive(this, accessory);
             break;
           }
         }
@@ -73,7 +73,7 @@ export class SalusIt500Platform implements DynamicPlatformPlugin {
           }
           case 'salusit500-contactsensor': {
             // register the contact sensor
-            new SalusIT500BoilerSensor(this, foundAccessory);
+            new SalusIT500BoilerActive(this, foundAccessory);
             break;
           }
         }

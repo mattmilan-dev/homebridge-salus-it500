@@ -82,7 +82,7 @@ export class SalusIT500Thermostat {
     await Promise.race([
       this.salusConnectAPI[value === this.platform.Characteristic.TargetHeatingCoolingState.AUTO ? 'setAutoOn' : 'setAutoOff'](),
       new Promise(res => {
-        setTimeout(res, 5000, true);
+        setTimeout(res, 10000, true);
       }),
     ]);
   }
@@ -102,7 +102,7 @@ export class SalusIT500Thermostat {
     await Promise.race([
       this.salusConnectAPI.setTemp(parseFloat(value as string)),
       new Promise(res => {
-        setTimeout(res, 5000, true);
+        setTimeout(res, 10000, true);
       }),
     ]);
   }

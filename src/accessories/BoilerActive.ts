@@ -2,9 +2,9 @@ import { Service, PlatformAccessory } from 'homebridge';
 import { SalusIt500Platform } from '../platform';
 
 import { v4 as uuid } from 'uuid';
-import { SalusConnectAPI } from './../api/SalusConnect';
+import { SalusConnectAPI } from '../api/SalusConnect';
 
-export class SalusIT500BoilerSensor {
+export class SalusIT500BoilerActive {
   private service: Service;
 
   constructor(
@@ -14,17 +14,18 @@ export class SalusIT500BoilerSensor {
 
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Salus Controls')
-      .setCharacteristic(this.platform.Characteristic.Model, 'Boiler Sensor')
+      .setCharacteristic(this.platform.Characteristic.Model, 'Boiler Active')
       .setCharacteristic(this.platform.Characteristic.SerialNumber, uuid());
 
-    this.service = this.accessory.getService(this.platform.Service.ContactSensor) ||
-        this.accessory.addService(this.platform.Service.ContactSensor);
+    this.service = this.accessory.getService(this.platform.Service.Fan) ||
+        this.accessory.addService(this.platform.Service.Fan);
 
     this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.name);
 
     // get the boiler state
-    this.service.getCharacteristic(this.platform.Characteristic.ContactSensorState)
-      .onGet(this.getBoilerState.bind(this));
+    this.service.getCharacteristic(this.platform.Characteristic.On)
+      .onGet(this.getBoilerState.bind(this))
+      .onSet(this.setBoilerState.bind(this));
   }
 
   async getBoilerState() {
@@ -36,11 +37,11 @@ export class SalusIT500BoilerSensor {
 
     const boilerOn = await salusApi.getBoilerOnOffState();
 
-    return boilerOn ? (
-      this.platform.Characteristic.ContactSensorState.CONTACT_DETECTED
-    ) : (
-      this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
-    );
+    return boilerOn ? 1 : 0;
+  }
+
+  setBoilerState() {
+    this.platform.log.debug('User is calling to change boiler state. NOT_SUPPORTED');
   }
 
 }
