@@ -1,5 +1,5 @@
 {
-  "private": true,
+  "private": false,
   "displayName": "Homebridge Salus IT500",
   "name": "homebridge-salus-it500",
   "version": "1.0.0",
@@ -7,10 +7,10 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/USERNAME/GITHUB_PROJECT_NAME.git"
+    "url": "git://github.com/mattmilan-dev/homebridge-salus-it500"
   },
   "bugs": {
-    "url": "https://github.com/USERNAME/GITHUB_PROJECT_NAME/issues"
+    "url": "https://github.com/mattmilan-dev/homebridge-salus-it500/issues"
   },
   "engines": {
     "node": ">=14.18.1",
