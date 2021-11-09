@@ -116,7 +116,7 @@ export class SalusIT500Thermostat {
       });
 
     await new Promise(res => {
-      setTimeout(res, 5000, true);
+      setTimeout(res, 2500, true);
     });
   }
 
@@ -138,17 +138,32 @@ export class SalusIT500Thermostat {
 
   // Handle setting the target temperature
   async setTargetTemperature(value: CharacteristicValue) {
-    this.cacheState = await this.salusConnectAPI.pingServer();
-    this.cacheState.CH1currentSetPoint = parseFloat(value as string).toFixed(1);
+    const cacheState = await this.salusConnectAPI.pingServer();
+    this.cacheState = cacheState;
+    this.cacheState.CH1currentSetPoint = value as string;
+    this.cacheState.CH1autoOff = '0';
 
-    this.salusConnectAPI
-      .setTemp(parseFloat(value as string))
-      .finally(() => {
-        this.cacheState = undefined;
-      });
+    if (cacheState.CH1autoOff === '1') {
+      this.salusConnectAPI
+        .setAuto('ON')
+        .then(() => {
+          return this.salusConnectAPI.setTemp(parseFloat(value as string));
+        })
+        .finally(() => {
+          this.cacheState = undefined;
+        });
+    } else {
+      this.salusConnectAPI
+        .setTemp(parseFloat(value as string))
+        .finally(() => {
+          this.cacheState = undefined;
+        });
+    }
+
+
 
     await new Promise(res => {
-      setTimeout(res, 5000, true);
+      setTimeout(res, 2500, true);
     });
   }
 
