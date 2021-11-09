@@ -47,7 +47,7 @@ export class SalusConnectAPI {
       });
 
       // get the token
-      const tokenRegex = /name="token"\ type="hidden"\ value="(.*)"\ \/>/;
+      const tokenRegex = /name="token" type="hidden" value="(.*)" \/>/;
       const tokenRequest = await fetch(this.uris.devices, {
         headers: {
           cookie,
@@ -95,14 +95,19 @@ export class SalusConnectAPI {
     }
   }
 
+  async pingServer() {
+    return await this.makeRequest('ping', {}) as {
+      CH1currentRoomTemp: string;
+      CH1currentSetPoint: string;
+      CH1autoOff: '1'|'0';
+      CH1heatOnOffStatus: '0'|'1';
+    };
+  }
+
   async getCurrentTemp() {
     try {
-      const response = await this.makeRequest('ping', {}) as {
-        CH1currentRoomTemp: string;
-        CH1currentSetPoint: string;
-        CH1autoOff: '1'|'0';
-      };
-      return response.CH1currentRoomTemp;
+      const { CH1currentRoomTemp } = await this.pingServer();
+      return CH1currentRoomTemp;
     } catch (err) {
       return null;
     }
@@ -110,12 +115,8 @@ export class SalusConnectAPI {
 
   async getCurrentSetTemp() {
     try {
-      const response = await this.makeRequest('ping', {}) as {
-        CH1currentRoomTemp: string;
-        CH1currentSetPoint: string;
-        CH1autoOff: '1'|'0';
-      };
-      return response.CH1currentSetPoint;
+      const { CH1currentSetPoint } = await this.pingServer();
+      return CH1currentSetPoint;
     } catch (err) {
       return null;
     }
@@ -123,10 +124,8 @@ export class SalusConnectAPI {
 
   async getBoilerOnOffState() {
     try {
-      const response = await this.makeRequest('ping', {}) as {
-        CH1heatOnOffStatus: '0'|'1';
-      };
-      return response.CH1heatOnOffStatus === '1'; // true is on, false is off
+      const { CH1heatOnOffStatus } = await this.pingServer();
+      return CH1heatOnOffStatus === '1'; // true is on, false is off
     } catch (err) {
       return null;
     }
@@ -134,39 +133,22 @@ export class SalusConnectAPI {
 
   async getAutoOnOffState() {
     try {
-      const response = await this.makeRequest('ping', {}) as {
-        CH1currentRoomTemp: string;
-        CH1currentSetPoint: string;
-        CH1autoOff: '1'|'0';
-      };
-      return response.CH1autoOff === '0'; // true is on, false is off
+      const { CH1autoOff } = await this.pingServer();
+      return CH1autoOff === '0'; // true is on, false is off
     } catch (err) {
       return null;
     }
   }
 
-  async setAutoOn() {
+  async setAuto(status: 'ON'|'OFF') {
     try {
       const res = await this.makeRequest('control', {
-        auto: 0,
+        auto: status === 'ON' ? 0 : 1,
         devId: this.devId,
         auto_setZ1: 1,
       });
       return res === '1';
-    } catch (err) {
-      return null;
-    }
-  }
-
-  async setAutoOff() {
-    try {
-      const res = await this.makeRequest('control', {
-        auto: 1,
-        devId: this.devId,
-        auto_setZ1: 1,
-      });
-      return res === '1';
-    } catch (err) {
+    } catch {
       return null;
     }
   }

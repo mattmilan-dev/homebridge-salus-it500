@@ -8,6 +8,19 @@ export class SalusIT500Thermostat {
   private service: Service;
   private salusConnectAPI: SalusConnectAPI;
 
+  /**
+   * CH1currentRoomTemp: string; CURRENT ROOM TEMP
+   * CH1currentSetPoint: string; CURRENT ROOM SET TEMP
+   * CH1autoOff: '1'|'0'; AUTO ON OR OFF
+   * CH1heatOnOffStatus: '1'|'0'; BOILER ON OR OFF
+   */
+  private cacheState?: {
+    CH1currentRoomTemp: string;
+    CH1currentSetPoint: string;
+    CH1autoOff: '1'|'0';
+    CH1heatOnOffStatus: '1'|'0';
+  };
+
   constructor(
     private readonly platform: SalusIt500Platform,
     private readonly accessory: PlatformAccessory,
@@ -61,6 +74,13 @@ export class SalusIT500Thermostat {
 
   // Handle getting Current Heating/Cooling State
   async getCurrentHeatingCoolingState() {
+    if (this.cacheState) {
+      return this.cacheState.CH1heatOnOffStatus === '1' ? (
+        this.platform.Characteristic.CurrentHeatingCoolingState.HEAT
+      ) : (
+        this.platform.Characteristic.CurrentHeatingCoolingState.OFF
+      );
+    }
     return (await this.salusConnectAPI.getBoilerOnOffState()) ? (
       this.platform.Characteristic.CurrentHeatingCoolingState.HEAT
     ) : (
@@ -70,6 +90,13 @@ export class SalusIT500Thermostat {
 
   // Handle getting Target Heating/Cooling State
   async getTargetHeatingCoolingState() {
+    if (this.cacheState) {
+      return this.cacheState.CH1autoOff === '0' ? (
+        this.platform.Characteristic.TargetHeatingCoolingState.AUTO
+      ) : (
+        this.platform.Characteristic.TargetHeatingCoolingState.OFF
+      );
+    }
     return (await this.salusConnectAPI.getAutoOnOffState()) ? (
       this.platform.Characteristic.TargetHeatingCoolingState.AUTO
     ) : (
@@ -79,32 +106,50 @@ export class SalusIT500Thermostat {
 
   // Handle setting Target Heating/Cooling Target
   async setTargetHeatingCoolingState(value: CharacteristicValue) {
-    await Promise.race([
-      this.salusConnectAPI[value === this.platform.Characteristic.TargetHeatingCoolingState.AUTO ? 'setAutoOn' : 'setAutoOff'](),
-      new Promise(res => {
-        setTimeout(res, 10000, true);
-      }),
-    ]);
+    this.cacheState = await this.salusConnectAPI.pingServer();
+    this.cacheState.CH1autoOff = value === this.platform.Characteristic.TargetHeatingCoolingState.AUTO ? '0' : '1';
+
+    this.salusConnectAPI
+      .setAuto(value === this.platform.Characteristic.TargetHeatingCoolingState.AUTO ? 'ON' : 'OFF')
+      .finally(() => {
+        this.cacheState = undefined;
+      });
+
+    await new Promise(res => {
+      setTimeout(res, 5000, true);
+    });
   }
 
   // Handle getting the current temperature
   async getCurrentTemperature() {
+    if (this.cacheState) {
+      return parseFloat(this.cacheState.CH1currentRoomTemp).toFixed(1);
+    }
     return parseFloat(await this.salusConnectAPI.getCurrentTemp() as string).toFixed(1);
   }
 
   // Handle getting the target temperature
   async getTargetTemperature() {
+    if (this.cacheState) {
+      return parseFloat(this.cacheState.CH1currentSetPoint).toFixed(1);
+    }
     return parseFloat(await this.salusConnectAPI.getCurrentSetTemp() as string).toFixed(1);
   }
 
   // Handle setting the target temperature
   async setTargetTemperature(value: CharacteristicValue) {
-    await Promise.race([
-      this.salusConnectAPI.setTemp(parseFloat(value as string)),
-      new Promise(res => {
-        setTimeout(res, 10000, true);
-      }),
-    ]);
+    this.cacheState = await this.salusConnectAPI.pingServer();
+    this.cacheState.CH1currentSetPoint = parseFloat(value as string).toFixed(1);
+
+    this.salusConnectAPI
+      .setTemp(parseFloat(value as string))
+      .finally(() => {
+        this.cacheState = undefined;
+      });
+
+    await new Promise(res => {
+      setTimeout(res, 5000, true);
+    });
   }
 
   // Handle getting temp display (force as celsius)
