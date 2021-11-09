@@ -1,15 +1,31 @@
 {
-  "pluginAlias": "ExampleHomebridgePlugin",
+  "pluginAlias": "SalusIT500",
   "pluginType": "platform",
   "singular": true,
   "schema": {
     "type": "object",
     "properties": {
-      "name": {
-        "title": "Name",
+      "username": {
+        "title": "Username/Email",
         "type": "string",
         "required": true,
-        "default": "Example Dynamic Platform"
+        "placeholder": "Salus App Email",
+        "format": "email",
+        "description": "The email address you enter if you visit: https://salus-it500.com/public/login.php?lang=en"
+      },
+      "password": {
+        "title": "Password",
+        "type": "string",
+        "required": true,
+        "placeholder": "Salus App Password",
+        "description": "The password you enter if you visit: https://salus-it500.com/public/login.php?lang=en"
+      },
+      "deviceId": {
+        "title": "Device ID",
+        "type": "number",
+        "required": true,
+        "placeholder": "Your Salus Device ID",
+        "description": "Your device ID can be found by logging in and going to your device and looking in the URL bar for 'devId=000000', where 000000 is your device ID"
       }
     }
   }
